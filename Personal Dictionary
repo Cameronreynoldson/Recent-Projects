@@ -1,0 +1,95 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+import org.apache.poi.xwpf.*;
+import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+
+public class PersonalDictionary
+{
+	
+	public static void main(String[] args) throws IOException
+	{
+		System.out.println("Please enter the name of your computer account: ");
+		
+		Scanner scanner = new Scanner(System.in);
+		
+		String name = scanner.next();
+		
+		String start = "/Users/"+name+"/Documents";
+		
+		TrieDictionary trie = new TrieDictionary();
+	
+		List<String> list = findWords(trie,start).getWords();
+		int counter = 1; 
+		System.out.println("Going through files....");
+		for(String string: list)
+		{
+			System.out.println(counter+". "+string);
+			counter++;
+		}
+	}
+	
+	public static TrieDictionary findWords(TrieDictionary trie,String start) throws FileNotFoundException, IOException
+	{
+		File dir = new File(start);
+		File[] list = dir.listFiles();
+		for(File child: list)
+		{
+			if(child.isDirectory())
+			{
+				findWords(trie,child.toString());
+			}
+			
+			else if(child.toString().substring(child.toString().length()-5).equals(".docx") && !child.isDirectory() && !child.toString().equals("MOM SD"))
+			{
+				XWPFDocument document = new XWPFDocument(new FileInputStream(child));
+				
+				XWPFWordExtractor extract = new XWPFWordExtractor(document);
+				
+				Scanner scanFile = new Scanner(extract.getText());
+				
+				while(scanFile.hasNext())
+				{
+					String next = checkForPunctuation(scanFile.next());
+					if(next.length() > 0)
+					{
+						if(checkForBad(next))
+						{
+							trie.add(next.toString());	
+						}
+					}
+				}
+			}
+		}
+		return trie;
+	}
+	
+	
+	public static boolean checkForBad(String string)
+	{
+		for(int i = 0; i < string.length(); ++i)
+		{
+			if(string.charAt(i) > 122 || string.charAt(i) < 97)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public static String checkForPunctuation(String string)
+	{
+		StringBuilder sb = new StringBuilder(string);
+		
+		for(int i = 0; i < sb.length(); ++i)
+		{
+			char c = sb.charAt(i);
+			sb.setCharAt(i,Character.toLowerCase(c));
+		}
+
+		return sb.toString();
+	}
+}
