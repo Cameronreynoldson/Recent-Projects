@@ -1,0 +1,90 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
+
+
+public class FileSearch
+{
+	
+	
+	
+	public static void main(String[] args) throws IOException
+	{
+		System.out.print("Please enter the name of the current account: ");
+		Scanner scanner = new Scanner(System.in);
+		String name = scanner.next();
+		System.out.println();
+		System.out.print("Enter the word you wish to search for: ");
+		String word = scanner.next();
+		System.out.println();
+		System.out.print("Enter the word you wish to replace it with: ");
+		String replace = scanner.next();
+		System.out.println("Scanning files...");
+		String start = "/Users/"+name+"/Documents";
+		searchAndReplace(start,word,replace);
+		System.out.println("Search and replace completed!");
+	}
+	
+	public static void searchAndReplace(String start, String word, String replace) throws IOException
+	{
+		String name; 
+		File dir = new File(start);
+		File[] listing = dir.listFiles();
+		for(File child: listing)
+		{
+			name = child.toString();
+			
+			if(child.isDirectory())
+			{
+				searchAndReplace(name,word,replace);
+			}
+			
+			if(name.substring(name.length()-4).equals(".txt"))
+			{
+				replace(child,word,replace);
+			}	
+		}
+	}
+	
+	public static void replace(File file, String word, String replace) throws IOException
+	{
+		String oldFileName = file.toString();
+		String tempFileName = "temp.txt";
+		BufferedReader br = null;
+		BufferedWriter bw = null; 
+		
+		br = new BufferedReader(new FileReader(oldFileName));
+		
+		bw = new BufferedWriter(new FileWriter(tempFileName));
+		
+		String line; 
+		
+		while((line = br.readLine()) != null)
+		{
+			if(line.contains(word))
+			{
+				line = line.replace(word,replace);
+			}
+			bw.write(line+"\n");
+		}
+		
+		br.close();
+		
+		bw.close();
+		
+		File oldFile = new File(oldFileName);
+		
+		oldFile.delete();
+		
+		File newFile = new File(tempFileName);
+		
+		newFile.renameTo(oldFile);
+	}
+}
+
+
